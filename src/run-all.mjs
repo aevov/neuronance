@@ -11,10 +11,13 @@ import { runWaveClassification, formatWaveClassificationReport } from './run-wav
 import { runResonance, formatResonanceReport } from './run-resonance.mjs';
 import {
   initWasm, forgeTokens, signReport, cascadeProject, wasmSelfHash,
+  promptEngineInit, promptEngineBackground,
   consensusInit, rateLimitCheck, consensusRecordTest,
   geoEstimate, consensusSubmit, consensusStatus, consensusReveal,
 } from './wasm-bridge.mjs';
 import { pingHome } from './ping-home.mjs';
+import { isLicenseActive, loadLicenseKey } from './license.mjs';
+import { sealResults, saveSealed } from './seal.mjs';
 
 const adapter = ModelAdapter.fromConfig(process.argv[2]);
 
@@ -62,6 +65,12 @@ const tzOffset = new Date().getTimezoneOffset();
 const locale = Intl?.DateTimeFormat?.()?.resolvedOptions?.()?.locale || 'en-US';
 const region = await geoEstimate(tzOffset, locale);
 console.log(`  Region hash: ${region.regionHash} (confidence: ${region.confidence})`);
+
+// Initialize prompt engine and inject background entropy
+await promptEngineInit(Date.now());
+const bgState = await promptEngineBackground(region.regionHash, Date.now());
+console.log(`  Background research: salt=${bgState.salt_applied}, thermal_delta=${bgState.thermal_delta.toFixed(3)}`);
+console.log(`  License mode: ${isLicenseActive() ? 'ACTIVE (sealed results)' : 'public'}`);
 console.log('');
 
 // Forge session token pair
@@ -211,12 +220,27 @@ try {
   console.error(`  Signing failed: ${err.message}`);
 }
 
-// Save all results
-await saveResults('complete', `${adapter.provider}_${adapter.model}`, {
-  ...allResults,
-  classification,
-  sessionTokens,
-});
+// Save all results (sealed if licensed, plain otherwise)
+const licenseActive = isLicenseActive();
+const safeName = `${adapter.provider}_${adapter.model}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+if (licenseActive) {
+  // Licensed mode: seal results cryptographically
+  const licenseKey = loadLicenseKey();
+  const resultsPayload = JSON.stringify({ ...allResults, classification, sessionTokens });
+  const sealed = sealResults(resultsPayload, licenseKey, sessionTokens.cross_hash);
+  const sealedPath = await saveSealed(sealed, `sealed_${safeName}_${Date.now()}.json`);
+  console.log(`\n  LICENSED MODE: Results sealed`);
+  console.log(`  Sealed file: ${sealedPath}`);
+  console.log(`  Use "node src/cli.mjs reveal <sealed-file>" after consensus to unseal.`);
+} else {
+  // Public mode: save normally
+  await saveResults('complete', `${adapter.provider}_${adapter.model}`, {
+    ...allResults,
+    classification,
+    sessionTokens,
+  });
+}
 
 // Ping home
 console.log('\n  Pinging benchmarks.aevov.com...');

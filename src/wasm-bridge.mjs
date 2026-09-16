@@ -316,6 +316,19 @@ export async function promptResearchValidate(prompt) {
   return JSON.parse(json);
 }
 
+/**
+ * Inject background entropy from geographic region + nonce.
+ * Call once after promptEngineInit() and before generating prompts.
+ * @param {string} regionHash - Region hash from geoEstimate()
+ * @param {number} nonce - Random nonce (e.g. Date.now())
+ * @returns {Promise<Object>} BackgroundState { salt_applied, thermal_delta, region_entropy }
+ */
+export async function promptEngineBackground(regionHash, nonce) {
+  const wasm = await getWasm();
+  const json = wasm.prompt_engine_background(regionHash, nonce);
+  return JSON.parse(json);
+}
+
 // ─── Geographic Consensus Protocol ─────────────────────────────────────
 
 /**

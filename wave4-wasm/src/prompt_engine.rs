@@ -444,6 +444,14 @@ pub struct ResearchResult {
     pub suggestion: String,
 }
 
+/// Background research state — injected per-session to ensure prompt uniqueness.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackgroundState {
+    pub salt_applied: bool,
+    pub thermal_delta: f64,
+    pub region_entropy: u32,
+}
+
 /// Engine status exposed to JS (no internal details leaked).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineStatus {
@@ -1018,6 +1026,52 @@ impl PromptEngine {
         self.generated.len() as u32 + self.generated_scenarios.len() as u32
     }
 
+    /// Inject background entropy from geographic region + random nonce.
+    /// Called once per session before any prompt generation to ensure
+    /// every benchmark session produces a unique prompt sequence,
+    /// even with the same session_seed.
+    pub fn research_background(&mut self, region_hash: &str, nonce: u64) -> BackgroundState {
+        use crate::hash::{blake3_derive_key, fnv1a_32};
+
+        // Build key material: region_hash || nonce || current call_counter
+        let mut key_material = Vec::with_capacity(64);
+        key_material.extend_from_slice(region_hash.as_bytes());
+        key_material.extend_from_slice(&nonce.to_le_bytes());
+        key_material.extend_from_slice(&(self.call_counter as u64).to_le_bytes());
+
+        // Derive a 32-byte salt via BLAKE3 key derivation
+        let derived = blake3_derive_key("wave4/background-research/v1", &key_material);
+
+        // Use first 8 bytes as background_salt u64
+        let salt = u64::from_le_bytes(derived[0..8].try_into().unwrap_or([0u8; 8]));
+        self.background_salt = salt;
+
+        // Inject thermal energy into 3 random LBM nodes
+        let mut thermal_delta = 0.0f64;
+        let node_count = self.lattice.nodes.len();
+        for k in 0..3 {
+            let h = fnv1a_32(&format!("bg_inject_{}_{}", salt, k));
+            let node_idx = (h as usize) % node_count;
+            let energy = (derived[8 + k] as f64) / 255.0 * 0.5;
+            self.lattice.inject_energy(node_idx, energy);
+            thermal_delta += energy;
+        }
+
+        // Advance Kuramoto phases with salt-derived offset
+        let phase_offset = (salt as f64 / u64::MAX as f64) * 2.0 * std::f64::consts::PI;
+        for phase in &mut self.kuramoto.phi {
+            *phase = (*phase + phase_offset) % (2.0 * std::f64::consts::PI);
+        }
+
+        self.research_active = true;
+
+        BackgroundState {
+            salt_applied: true,
+            thermal_delta,
+            region_entropy: fnv1a_32(region_hash),
+        }
+    }
+
     /// Whether background research is currently active.
     pub fn is_researching(&self) -> bool {
         self.research_active
@@ -1124,5 +1178,49 @@ mod tests {
         let engine = PromptEngine::new(42);
         let status = engine.status("rcb");
         assert!(status.total_templates > 30);
+    }
+
+    #[test]
+    fn background_research_changes_output() {
+        let mut engine1 = PromptEngine::new(42);
+        let mut engine2 = PromptEngine::new(42);
+
+        // Apply different background salts
+        engine1.research_background("region_aaa", 1000);
+        engine2.research_background("region_bbb", 2000);
+
+        let p1 = engine1.generate_rcb();
+        let p2 = engine2.generate_rcb();
+
+        // Different backgrounds should produce different prompts
+        assert_ne!(p1.text, p2.text);
+    }
+
+    #[test]
+    fn background_research_is_idempotent() {
+        let mut engine1 = PromptEngine::new(42);
+        let mut engine2 = PromptEngine::new(42);
+
+        let state1 = engine1.research_background("region_xyz", 9999);
+        let state2 = engine2.research_background("region_xyz", 9999);
+
+        // Same inputs should produce same background state
+        assert_eq!(state1.salt_applied, state2.salt_applied);
+        assert_eq!(state1.thermal_delta, state2.thermal_delta);
+        assert_eq!(state1.region_entropy, state2.region_entropy);
+    }
+
+    #[test]
+    fn background_salt_persists_across_generations() {
+        let mut engine = PromptEngine::new(42);
+        engine.research_background("region_test", 5555);
+
+        let p1 = engine.generate_rcb();
+        let p2 = engine.generate_rcb();
+
+        // Both generations should work with the background salt active
+        assert!(!p1.text.is_empty());
+        assert!(!p2.text.is_empty());
+        assert!(engine.is_researching());
     }
 }

@@ -13,6 +13,8 @@
 // Configuration: via .wave4config.json, environment variables, or direct API.
 
 import { readFileSync, existsSync } from 'fs';
+import { randomUserAgent, licensedUserAgent } from './ua-pool.mjs';
+import { isLicenseActive } from './license.mjs';
 
 const CONFIG_PATH = '.wave4config.json';
 
@@ -31,7 +33,8 @@ async function httpRequest(url, { method = 'POST', headers = {}, body = null, ti
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const opts = { method, headers: { 'Content-Type': 'application/json', ...headers }, signal: controller.signal };
+    const ua = isLicenseActive() ? licensedUserAgent() : randomUserAgent();
+    const opts = { method, headers: { 'Content-Type': 'application/json', 'User-Agent': ua, ...headers }, signal: controller.signal };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(url, opts);
     if (!res.ok) {

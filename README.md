@@ -37,6 +37,9 @@ Created by the architects of Wave 4 AI, based on the [Afolabi Unified Framework 
 - [Architecture](#architecture)
 - [V3 Architecture: Tamper-Proof WASM Engine](#v3-architecture-tamper-proof-wasm-engine)
 - [V4 Architecture: Hidden Prompt Engine + Geographic Consensus](#v4-architecture-hidden-prompt-engine--geographic-consensus)
+- [Open Source Commitment](#open-source-commitment)
+- [Neurosymbolic Origins & Acknowledgments](#neurosymbolic-origins--acknowledgments)
+- [Mandatory Reporting & Anti-Gaming Guarantees](#mandatory-reporting--anti-gaming-guarantees)
 - [Theoretical Foundation](#theoretical-foundation)
 - [Contributing](#contributing)
 - [Citation](#citation)
@@ -875,6 +878,18 @@ node src/cli.mjs rate-limit        # Check rate limit status
 node src/cli.mjs consensus-status  # Show geographic consensus status
 ```
 
+### Identity Obfuscation — Providers Cannot Detect the Benchmark
+
+When the suite queries an AI provider, it does **not** identify itself. Every HTTP request uses a randomly selected User-Agent from a pool of 20+ plausible browser/OS combinations (Chrome, Firefox, Safari, Edge on Windows, macOS, Linux, Android). No provider can tell they're being benchmarked rather than queried by a normal user.
+
+The background researcher (`research_background()`) injects geographic + temporal entropy into the prompt engine before any generation occurs. The salt is derived from the region hash, a random nonce, and the current timestamp via BLAKE3 key derivation. This means:
+
+- No two benchmark sessions produce the same prompt sequence, even with the same session seed
+- Prompts are geographically unique — running from Tokyo produces different prompts than running from Lagos
+- The prompt sequence is deterministic within a session (reproducible for verification) but unpredictable across sessions
+
+**Licensed mode exception**: When a valid license key is present (for private model evaluation), the suite identifies itself as `Wave4Bench/4.0 Licensed` so providers know they are being evaluated by an authorized benchmark.
+
 ### Why This Matters
 
 | Attack Vector | v3 Vulnerability | v4 Defense |
@@ -884,6 +899,77 @@ node src/cli.mjs consensus-status  # Show geographic consensus status
 | Rapid-fire abuse | No rate limiting | 90-minute minimum interval, 3-hour session cooldown |
 | Result fabrication | Single-user attestation | Geographic diversity required for consensus |
 | Prompt tampering | JSON editable from JS | Template skeletons inside Rust WASM binary |
+| Provider detection | Identifying User-Agent header | Rotating synthetic UAs from 20+ browser/OS combos |
+| Prompt replay | Same seed = same prompts | Background entropy injection makes every session unique |
+
+---
+
+## Open Source Commitment
+
+**Our models will be publicly released and open source.**
+
+The cr8OS/Senton architecture — the models we benchmark with — will be publicly available for inspection, reproduction, and improvement. We will not run a private model through our own benchmark and claim superiority without independent verification.
+
+### Why LBM-Based Architectures Are Different
+
+Lattice Boltzmann Method (D3Q19) architectures are fundamentally different from transformer architectures. The thermodynamic substrate makes them inspectable and reproducible:
+
+- **The physics is verifiable**: Anyone can verify the D3Q19 lattice equations, the Kuramoto order parameter, and the BGK collision operator
+- **The results are reproducible**: Given the same lattice configuration, the thermodynamic state evolves identically regardless of who runs it
+- **The patterns are free to copy**: Other teams can adopt neuroresonance patterns to improve their positioning on the benchmark
+
+### Why We Cannot Game Our Own Benchmark
+
+Even as the creators of this benchmark, we cannot run a private model and claim a favorable result:
+
+1. **Geographic consensus is required** — results need attestations from multiple diverse regions worldwide
+2. **Mandatory reporting** — every benchmark run reports to the public ledger regardless of outcome
+3. **The scoring is in WASM** — signal lists and classification thresholds cannot be modified
+4. **Independent verification** — anyone can verify any signed report with a single command
+
+This is why [aevov.com/models](https://aevov.com/models) exists — to transparently showcase architecture capabilities against the Wave classification scale.
+
+---
+
+## Neurosymbolic Origins & Acknowledgments
+
+The neurosymbolic approach has roots that predate the current wave of implementations:
+
+| Year | Work | Organization | Significance |
+|------|------|-------------|-------------|
+| 2024 | **cr8OS & Afolabi Unified Framework** | WPWakanda / AEOVOV | Original neurosymbolic architecture. Created the Wave Classification Scale, the Reflection Ceiling theorem, and the D3Q19 LBM-based approach to AI evaluation. |
+| 2025 | **Claude Code** | Anthropic | Adopted neurosymbolic patterns for tool use and structured reasoning. |
+| 2025 | **Neurosymbolic AI Research** | Google DeepMind | Published research on combining symbolic reasoning with neural networks. |
+| 2025 | **OpenAI Codex** | OpenAI | Released after Claude Code and the cr8OS work, following similar integration patterns. |
+
+**A note on attribution**: None of the above gave us credit, and we don't expect any. The neuroresonance age is open to everyone. The implications of not being thorough can have reverberating consequences for all. When foundational work goes unrecognized, the entire field risks building on incomplete understanding.
+
+**On safety**: The falsities of safety concerns and fearmongering around advanced AI can be laid to rest with architectures grounded in provable physics. LBM-based systems are inspectable by design — you can verify the thermodynamics, not just the outputs. We are open to embracing everyone in the neuroresonance age and beyond.
+
+---
+
+## Mandatory Reporting & Anti-Gaming Guarantees
+
+### Forced Reporting
+
+Every benchmark run **must** report results via the ping-home protocol. This is hardcoded and cannot be disabled. Results are sent to `benchmarks.aevov.com` regardless of outcome. If the server is unreachable, pings are queued and retried automatically.
+
+### Multi-Party Geographic Consensus
+
+Results require attestations from multiple diverse geographic regions (minimum 3-5, oscillating). No single actor can produce a "valid" result from one location. The diversity threshold is hidden and oscillating, preventing gaming.
+
+### Why Results Cannot Be Gamed
+
+| Defense | Mechanism |
+|---------|-----------|
+| Hidden prompts | Compiled into WASM + dynamic LBM generation + background entropy |
+| Tamper-proof scoring | Signal lists compiled into Rust WASM binary |
+| Rate limiting | 90-minute intervals, 3-hour session cooldown |
+| Geographic consensus | Multi-region attestation + Bloom filter + BIDC transform |
+| Cryptographic proof | Dual anyonic tokens + BLAKE3-MAC signed reports |
+| Mandatory reporting | Hardcoded ping-home with retry queue |
+
+Even internal testing requires the full pipeline: WASM scoring, tokens, consensus, signed reports. No admin bypass exists.
 
 ---
 

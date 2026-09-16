@@ -483,6 +483,22 @@ pub fn prompt_research_validate(prompt_json: &str) -> String {
     })
 }
 
+/// Inject background entropy from geographic region + random nonce.
+/// Ensures every benchmark session produces unique prompts.
+#[wasm_bindgen]
+pub fn prompt_engine_background(region_hash: &str, nonce: f64) -> String {
+    PROMPT_ENGINE.with(|e| {
+        let mut guard = e.borrow_mut();
+        match guard.as_mut() {
+            Some(eng) => {
+                let state = eng.research_background(region_hash, nonce as u64);
+                serde_json::to_string(&state).unwrap_or_else(|_| "{}".to_string())
+            }
+            None => r#"{"error":"engine not initialized"}"#.to_string(),
+        }
+    })
+}
+
 // ─── Geographic Consensus Protocol ─────────────────────────────────────
 
 thread_local! {

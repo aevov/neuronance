@@ -5,6 +5,14 @@ import { getWaveSummary } from './wave-definitions.mjs';
 import { existsSync, readFileSync } from 'fs';
 
 const args = process.argv.slice(2);
+
+// Parse --license-key flag before command routing
+const licenseIdx = args.indexOf('--license-key');
+if (licenseIdx !== -1 && args[licenseIdx + 1]) {
+  process.env.WAVE4_LICENSE_KEY_CLI = args[licenseIdx + 1];
+  args.splice(licenseIdx, 2); // Remove flag + value from args
+}
+
 const command = args[0];
 
 function printHelp() {
@@ -36,6 +44,10 @@ function printHelp() {
     rate-limit           Check rate limit status
     consensus-status     Show geographic consensus status
     engine-status        Show prompt engine status
+
+  LICENSED COMMANDS:
+    reveal <file>        Unseal a sealed benchmark result (requires license key)
+    --license-key <key>  Provide license key for sealed mode
 
   UTILITY COMMANDS:
     list                 List available providers
@@ -364,6 +376,66 @@ async function cmdEngineStatus() {
 `);
 }
 
+async function cmdReveal(filePath) {
+  if (!filePath) {
+    console.error('  Error: Sealed file path required. Usage: node src/cli.mjs reveal .sealed/sealed_openai_gpt-4o_123.json\n');
+    process.exit(1);
+  }
+
+  const { loadLicenseKey } = await import('./license.mjs');
+  const { loadSealed, unsealResults } = await import('./seal.mjs');
+  const { initWasm, consensusInit, consensusStatus, consensusReveal } = await import('./wasm-bridge.mjs');
+
+  await initWasm();
+  await consensusInit(Date.now());
+
+  const licenseKey = loadLicenseKey();
+  if (!licenseKey) {
+    console.error('  Error: No valid license key found.');
+    console.error('  Set WAVE4_LICENSE_KEY env var, use --license-key <key>, or create .wave4License.json\n');
+    process.exit(1);
+  }
+
+  // Check consensus status
+  const status = await consensusStatus();
+  const reveal = await consensusReveal();
+  if (!reveal) {
+    console.log(`  Consensus not yet reached.`);
+    console.log(`  Attestations: ${status.attestations_count}/${status.diversity_threshold}`);
+    console.log(`  Regions needed: ${status.regions_needed}`);
+    console.log(`  Results can only be unsealed after geographic consensus.\n`);
+    process.exit(1);
+  }
+
+  try {
+    const sealed = await loadSealed(filePath);
+    const decrypted = unsealResults(sealed, licenseKey);
+    const results = JSON.parse(decrypted);
+
+    console.log(`
+  SEALED RESULTS UNSEALED
+  File:                 ${filePath}
+  Sealed at:            ${sealed.sealed_at}
+  Consensus hash:       ${reveal.consensus_hash.slice(0, 32)}...
+  Attestations:         ${reveal.attestation_count}
+  Regions:              ${reveal.region_count}
+
+  Classification:       Wave ${results.classification?.overallWave || 'N/A'}
+  License hash:         ${sealed.license_hash}
+`);
+
+    // Save unsealed results to results/ directory
+    const { mkdir, writeFile } = await import('fs/promises');
+    await mkdir('results', { recursive: true });
+    const outPath = `results/unsealed_${Date.now()}.json`;
+    await writeFile(outPath, JSON.stringify(results, null, 2));
+    console.log(`  Unsealed results saved: ${outPath}\n`);
+  } catch (err) {
+    console.error(`  Error unsealing: ${err.message}\n`);
+    process.exit(1);
+  }
+}
+
 // Route commands
 switch (command) {
   case 'help':
@@ -413,6 +485,9 @@ switch (command) {
     break;
   case 'engine-status':
     await cmdEngineStatus();
+    break;
+  case 'reveal':
+    await cmdReveal(args[1]);
     break;
   default:
     console.error(`\n  Unknown command: ${command}\n`);

@@ -3,6 +3,8 @@ results/
 .env
 .env.*
 .wave4config.json
+.wave4License.json
+.sealed/
 *.log
 .DS_Store
 .ping-queue/
