@@ -172,7 +172,7 @@ Other organizations have since adopted the term "neurosymbolic" for their own sy
 
 The cr8OS architecture combines:
 - **Neural pattern recognition** (Senton inference engine, neural cascade, weight hydration)
-- **Symbolic reasoning** (APL compiler with runic primitives, 151 implementations mapped to the Afolabi Unified Framework)
+- **Symbolic reasoning** (APL compiler with runic primitives - https://github.com/aevov/apl-open-core - , 151 implementations mapped to the Afolabi Unified Framework)
 - **Thermodynamic substrate** (D3Q19 LBM, the same engine now embedded in this benchmark)
 - **Kuramoto oscillator brain** (the same phase-synchronization validator now compiled into WASM)
 
