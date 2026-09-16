@@ -937,7 +937,7 @@ The neurosymbolic approach has roots that predate the current wave of implementa
 
 | Year | Work | Organization | Significance |
 |------|------|-------------|-------------|
-| 2024 | **cr8OS & Afolabi Unified Framework** | WPWakanda / AEOVOV | Original neurosymbolic architecture. Created the Wave Classification Scale, the Reflection Ceiling theorem, and the D3Q19 LBM-based approach to AI evaluation. |
+| 2024 | **cr8OS & Afolabi Unified Framework** | WPWakanda / AEVOV | Original neurosymbolic architecture. Created the Wave Classification Scale, the Reflection Ceiling theorem, and the D3Q19 LBM-based approach to AI evaluation. |
 | 2025 | **Claude Code** | Anthropic | Adopted neurosymbolic patterns for tool use and structured reasoning. |
 | 2025 | **Neurosymbolic AI Research** | Google DeepMind | Published research on combining symbolic reasoning with neural networks. |
 | 2025 | **OpenAI Codex** | OpenAI | Released after Claude Code and the cr8OS work, following similar integration patterns. |
