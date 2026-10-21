@@ -4,6 +4,10 @@
 
 **IMPORTANT!! Go through the readme before you begin!** **Neuronance is a combination of Neural and Resonance = Neuronance**
 
+The world's first and ONLY thermodynamic and geometric brain model architecture is responsible for aiding our benchmarking tool: 
+
+                      https://github.com/aevov/Afolabi-LBM-170B-Lattice/tree/main
+
 Any AI system claiming "alignment," "resonance," "safety," or "AGI readiness" must demonstrate measurable capabilities against this framework. If your model claims Wave 4 neuroresonance, prove it. If your alignment technique claims to surpass transformers, test it here.
 
 **v4.0**: All prompts are now hidden inside compiled Rust/WASM — no plaintext JSON files exist. A dynamic LBM-driven prompt engine generates unique evaluation prompts from template skeletons using D3Q19 thermodynamics and Kuramoto coherence. Geographic consensus protocol enables serverless worldwide attestation via gossip+BIDC (Bidirectional coalescing). Rate limiting enforces 1 test per 90 minutes with 3-hour session cooldowns.
