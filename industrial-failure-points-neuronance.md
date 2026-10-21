@@ -30,7 +30,7 @@ Enterprise clients purchase enterprise licenses based on inflated benchmark scor
 **Erosion of Procurement Trust:**
 Enterprise buyers can no longer distinguish between genuine architectural advancements and models that have overfit to known evaluation datasets.
 
-### Your Framework's Fix
+### Our Framework's Fix
 
 Eliminating plaintext evaluation datasets in favor of compiled Rust/WASM template skeletons driven by dynamic thermodynamic states (LBM) ensures that models are tested against dynamic, un-memorizable conditions.
 
