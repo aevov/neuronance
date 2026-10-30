@@ -10,7 +10,7 @@ The world's first and ONLY thermodynamic and geometric brain model architecture 
 
                       **https://github.com/aevov/Worlds-Only-Geometric-Reasoning-Protocol**
 
-Any AI system claiming "alignment," "resonance," "safety," or "AGI readiness" must demonstrate measurable capabilities against this framework. If your model claims Wave 4 neuroresonance, prove it. If your alignment technique claims to surpass transformers, test it here.
+Any AI system claiming "geometric reasoning", "alignment," "resonance," "safety," or "AGI readiness" must demonstrate measurable capabilities against this framework. If your model claims Wave 4 neuroresonance, prove it. If your alignment technique claims to surpass transformers, test it here.
 
 **v4.0**: All prompts are now hidden inside compiled Rust/WASM — no plaintext JSON files exist. A dynamic LBM-driven prompt engine generates unique evaluation prompts from template skeletons using D3Q19 thermodynamics and Kuramoto coherence. Geographic consensus protocol enables serverless worldwide attestation via gossip+BIDC (Bidirectional coalescing). Rate limiting enforces 1 test per 90 minutes with 3-hour session cooldowns.
 
@@ -18,7 +18,7 @@ Any AI system claiming "alignment," "resonance," "safety," or "AGI readiness" mu
 
 Created by the architects of Wave 4 AI, based on the [Afolabi Unified Framework (AUF)](https://github.com/aevov/afolabi-unified-framework).
 
-**Primary showcase**: [aevov.com/models](https://aevov.com/models) — the definitive model evaluation hub, serving as an alternative to HuggingFace for demonstrating the full power of each architecture against the Wave classification scale.
+**Primary showcase**: [aevov.com/models - (coming back soon)](https://aevov.com/models) — the definitive model evaluation hub, serving as an alternative to HuggingFace for demonstrating the full power of each architecture against the Wave classification scale.
 
 ---
 
